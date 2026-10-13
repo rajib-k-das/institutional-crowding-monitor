@@ -6,6 +6,14 @@ profile: crowding
 model-paths: ["models"]
 test-paths: ["tests/data_tests"]
 macro-paths: ["macros"]
+seed-paths: ["seeds"]
+
+seeds:
+  crowding:
+    +schema: reference
+    us_federal_holidays:
+      +column_types:
+        holiday_date: date
 
 models:
   crowding:
@@ -26,3 +34,7 @@ vars:
   last_report_quarter: "2026-06-30"
   # A security needs at least this many filings reporting it in a quarter for a consensus price (decision 006).
   min_filings_for_price: 5
+  # Splits: managers holding a stock in both quarters must number at least this many to infer a split.
+  min_managers_for_split: 3
+  # Crowding analysis universe: stocks held by at least this many managers (as known at the deadline).
+  min_holders_for_crowding: 10

@@ -11,3 +11,7 @@ dbt_packages/
 logs/
 .user.yml
 .DS_Store
+# Script outputs (re-created by running the scripts)
+profile.txt
+cleaning.txt
+findings.txt

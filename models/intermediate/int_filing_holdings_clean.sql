@@ -4,6 +4,7 @@ select
     h.accession_number,
     h.cusip,
     h.shares,
+    h.reported_value,
     h.reported_value * u.value_multiplier                                   as value_usd,
     u.is_reported_in_thousands,
     p.consensus_price,

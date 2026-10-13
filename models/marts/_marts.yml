@@ -1,0 +1,33 @@
+version: 2
+
+models:
+  - name: dim_security
+    description: One row per security (CUSIP) with its name, class and whether it counts as common equity
+    columns:
+      - name: cusip
+        data_tests: [not_null, unique]
+  - name: dim_manager
+    description: One row per filing manager with its latest name and filing habits
+    columns:
+      - name: manager_cik
+        data_tests: [not_null, unique]
+  - name: fct_manager_quarter
+    description: One row per manager and quarter — filing timeliness, amendments, units, value, and how much of the portfolio changed by the next report
+    columns:
+      - name: pct_value_changed_by_next_quarter
+        data_tests:
+          - accepted_range_0_1
+  - name: fct_security_quarter
+    description: One row per security and quarter — holders, breadth change known at the deadline, price and split-adjusted returns
+  - name: fct_crowding_deciles
+    description: Stocks ranked each quarter by the change in breadth known at the deadline, with average returns before and after the data were public
+    columns:
+      - name: crowding_decile
+        data_tests:
+          - accepted_values:
+              arguments:
+                values: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+  - name: fct_breadth_streaks
+    description: Runs of three or more quarters of rising breadth, and whether breadth fell in the quarter after
+  - name: fct_disclosure_quarter
+    description: Per quarter, how complete the picture was at the deadline and how much a naive total misses because of values in thousands

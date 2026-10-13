@@ -62,3 +62,41 @@ codespace (8 GB) while aggregating ~40M holding lines with four models running a
 **Choice:** dbt runs one model at a time with DuckDB capped at 3 GB (it spills to disk beyond that); the large
 aggregation carries numbers only, and issuer names are kept once per security in `int_securities`.
 **Verified:** a 40M-line synthetic load builds in under 5 minutes with peak memory of about 3.2 GB.
+
+## 008 — Filing deadlines follow the business-day rule
+
+**Found in the data:** the first version moved weekend deadlines to Monday but ignored holidays, and flagged
+2,079 Q4 2025 filings as late. That quarter's 45th day was Saturday 14 February 2026, and Monday 16 February was
+Presidents' Day, so the real deadline was Tuesday 17 February.
+**Choice:** a seed of US federal holidays (`seeds/us_federal_holidays.csv`); the deadline is the first day on or
+after day 45 that is neither a weekend nor a holiday. A test pins every studied quarter's deadline, worked out by hand.
+
+## 009 — Stock splits inferred from the filings
+
+**Choice:** a split from one quarter to the next is inferred when managers holding the stock in both quarters
+typically hold a whole multiple k of their previous shares (within 3%), and multiplying the price change by k
+brings it closer to zero. Returns and portfolio changes are adjusted by k.
+**Why:** without it, a 10-for-1 split reads as a 90% loss and as every holder having bought ten times more shares.
+**Limits:** fractional splits (3-for-2) and spin-offs are not detected.
+
+## 010 — Common stock only, by name
+
+**Choice:** the crowding analysis keeps securities whose name and class do not look like an ETF, fund, preferred
+share, warrant, unit or note. 13F data has no security-type field, so this is a name-based heuristic.
+**Why:** ETF ownership tracks fund flows, not conviction in a company, and would dominate the most-held lists.
+
+## 011 — Crowding measured only with what was public at the deadline
+
+**Choice:** ownership breadth change for quarter Q compares, among managers whose Q and Q−1 reports were both
+public by Q's filing deadline, how many held the stock at Q vs Q−1, divided by the number of such managers. Late
+filings and later amendments are excluded. Returns are measured two ways: from Q's end to the next quarter's end
+(the window most 13F studies use, which starts about 45 days *before* the data were public) and from the next
+quarter's end to the one after (which starts *after* the data were public).
+**Why:** the gap between the two is the lookahead that a naive analysis would count as skill.
+
+## 012 — Staleness: how much of a disclosed portfolio has changed by the next report
+
+**Choice:** for each manager and quarter, the share of the reported portfolio's value whose position was exited,
+or changed by more than 10% (split-adjusted), by the manager's next quarterly report.
+**Why:** a 13F is published up to 45 days after the quarter it describes; this measures how much of what an
+investor reads has already been traded away by the next disclosure.

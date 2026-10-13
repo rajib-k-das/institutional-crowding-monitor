@@ -5,8 +5,9 @@ Three managers, three securities, two report quarters (Q4 2023 and Q1 2024), and
 pipeline has to handle. Expected results are asserted in tests/data_tests/assert_fixture_known_answers.sql.
 
     Alpha Capital (CIK 1001)
-      Q4 2023  original   ACME 1,000 sh $100,000 | BOLT 500 sh $25,000
+      Q4 2023  original   ACME 1,000 sh $100,000 | BOLT 500 sh $25,000 | SPLIT 100 sh $20,000
       Q1 2024  original   ACME split over two rows (1,000 + 500 sh, $165,000 in total) | BOLT put option (excluded)
+                          | SPLIT 200 sh $21,000 (the stock split 2-for-1: the same position, not a purchase)
     Beta Partners (CIK 1002)
       Q4 2023  original   ACME 2,000 sh reported as $200: value in thousands by mistake (true value $200,000)
       Q1 2024  original   ACME 2,000 sh $220,000 | CIVIC bond, principal amount (excluded)
@@ -17,7 +18,8 @@ pipeline has to handle. Expected results are asserted in tests/data_tests/assert
     Delta Fund (CIK 1004)
       Q1 2024  13F-NT notice: holdings reported by another manager, so no holdings rows
     Peer One to Four (CIK 1005-1008)
-      both quarters: ACME at $100 then $110 a share, BOLT at $50 then $60, setting the consensus price
+      both quarters: ACME at $100 then $110 a share, BOLT at $50 then $60, setting the consensus price;
+      SPLIT 100 sh at $200, then 200 sh at $105 after its 2-for-1 split (a +5% return, not -47.5%)
       Peer One files Q1 on 1 Jun 2024, after the 15 May deadline
       Peer Two reports BOLT in Q1 at $60,000 a share: a suspect line, kept for holder counts, not for values
 
@@ -44,17 +46,19 @@ HEADERS = {
 }
 
 ACME, BOLT, CIVIC = ("ACME CORP", "COM", "000000AA1"), ("BOLT INC", "CL A", "000000BB2"), ("CIVIC CO", "NOTE 5% 2030", "000000CC3")
+SPLT = ("SPLIT CO", "COM", "000000DD4")   # splits 2-for-1 during Q1 2024: $200 a share, then $105
 MANAGERS = {"1001": "ALPHA CAPITAL LLC", "1002": "BETA PARTNERS LP", "1003": "GAMMA ADVISORS INC", "1004": "DELTA FUND LLC",
             "1005": "PEER ONE LLC", "1006": "PEER TWO LLC", "1007": "PEER THREE LLC", "1008": "PEER FOUR LLC"}
 
 # accession, filing date, submission type, cik, period, is amendment, amendment no, amendment type, report type, holdings
 FILINGS = [
     ("0000001001-24-000001", "10-FEB-2024", "13F-HR", "1001", "31-DEC-2023", "", "", "", "13F HOLDINGS REPORT",
-     [(ACME, 100000, 1000, "SH", ""), (BOLT, 25000, 500, "SH", "")]),
+     [(ACME, 100000, 1000, "SH", ""), (BOLT, 25000, 500, "SH", ""), (SPLT, 20000, 100, "SH", "")]),
     ("0000001002-24-000001", "12-FEB-2024", "13F-HR", "1002", "31-DEC-2023", "", "", "", "13F HOLDINGS REPORT",
      [(ACME, 200, 2000, "SH", "")]),
     ("0000001001-24-000002", "14-MAY-2024", "13F-HR", "1001", "31-MAR-2024", "", "", "", "13F HOLDINGS REPORT",
-     [(ACME, 110000, 1000, "SH", ""), (ACME, 55000, 500, "SH", ""), (BOLT, 3000, 50, "SH", "Put")]),
+     [(ACME, 110000, 1000, "SH", ""), (ACME, 55000, 500, "SH", ""), (BOLT, 3000, 50, "SH", "Put"),
+      (SPLT, 21000, 200, "SH", "")]),
     ("0000001002-24-000002", "15-MAY-2024", "13F-HR", "1002", "31-MAR-2024", "", "", "", "13F HOLDINGS REPORT",
      [(ACME, 220000, 2000, "SH", ""), (CIVIC, 98000, 100000, "PRN", "")]),
     ("0000001003-24-000001", "10-MAY-2024", "13F-HR", "1003", "31-MAR-2024", "", "", "", "13F HOLDINGS REPORT",
@@ -67,8 +71,8 @@ FILINGS = [
 ]
 # Four peers that set the consensus price: ACME $100 at Q4 2023 and $110 at Q1 2024, BOLT $50 and $60.
 for n, cik in enumerate(["1005", "1006", "1007", "1008"], start=1):
-    q4 = [(ACME, 100 * 100 * n, 100 * n, "SH", ""), (BOLT, 50 * 200 * n, 200 * n, "SH", "")]
-    q1 = [(ACME, 110 * 100 * n, 100 * n, "SH", ""), (BOLT, 60 * 200 * n, 200 * n, "SH", "")]
+    q4 = [(ACME, 100 * 100 * n, 100 * n, "SH", ""), (BOLT, 50 * 200 * n, 200 * n, "SH", ""), (SPLT, 20000, 100, "SH", "")]
+    q1 = [(ACME, 110 * 100 * n, 100 * n, "SH", ""), (BOLT, 60 * 200 * n, 200 * n, "SH", ""), (SPLT, 21000, 200, "SH", "")]
     if cik == "1006":
         q1[1] = (BOLT, 60_000 * 400, 400, "SH", "")   # value 1,000x too high for its shares: suspect, value not used
     q1_date = "01-JUN-2024" if cik == "1005" else "14-MAY-2024"  # Peer One files after the 15 May deadline

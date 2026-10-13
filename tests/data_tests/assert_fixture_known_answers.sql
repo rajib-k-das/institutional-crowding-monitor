@@ -78,6 +78,49 @@ checks as (
            (select min(filing_deadline) - date '2024-01-01' from {{ ref('int_filings') }}
             where period_of_report = date '2024-03-31')
     union all
+    select 'SPLIT inferred as a 2-for-1 split', 2,
+           (select split_factor from {{ ref('int_split_factors') }} where cusip = '000000DD4' and quarter_index = 1)
+    union all
+    select 'SPLIT split-adjusted return, Q4 to Q1, in basis points', 500,
+           (select round(return_next_quarter * 10000) from {{ ref('fct_security_quarter') }}
+            where cusip = '000000DD4' and quarter_index = 1)
+    union all
+    select 'ACME return, Q4 to Q1, in basis points', 1000,
+           (select round(return_next_quarter * 10000) from {{ ref('fct_security_quarter') }}
+            where cusip = {{ acme }} and quarter_index = 1)
+    union all
+    select 'Managers with Q4 and Q1 reports public by the Q1 deadline', 5,
+           (select managers_in_both from {{ ref('int_breadth_changes') }} where cusip = {{ acme }} and quarter_index = 2)
+    union all
+    select 'BOLT breadth change at the Q1 deadline, in basis points (4 holders to 3, of 5 managers)', -2000,
+           (select round(breadth_change * 10000) from {{ ref('int_breadth_changes') }} where cusip = {{ bolt }} and quarter_index = 2)
+    union all
+    select 'ACME breadth change at the Q1 deadline (Gamma''s July amendment not yet public)', 0,
+           (select breadth_change from {{ ref('int_breadth_changes') }} where cusip = {{ acme }} and quarter_index = 2)
+    union all
+    select 'Alpha: share of Q4 value changed by Q1, in basis points (ACME bought, BOLT sold, SPLIT only split)', 8621,
+           (select round(pct_value_changed_by_next_quarter * 10000) from {{ ref('fct_manager_quarter') }}
+            where manager_cik = '1001' and quarter_index = 1)
+    union all
+    select 'Alpha: share of Q4 value exited by Q1, in basis points', 1724,
+           (select round(pct_value_exited_by_next_quarter * 10000) from {{ ref('fct_manager_quarter') }}
+            where manager_cik = '1001' and quarter_index = 1)
+    union all
+    select 'Peer Three: nothing changed (its SPLIT holding doubled only because of the split)', 0,
+           (select pct_value_changed_by_next_quarter from {{ ref('fct_manager_quarter') }}
+            where manager_cik = '1007' and quarter_index = 1)
+    union all
+    select 'Peer One Q1 not known at the deadline', 0,
+           (select case when is_known_at_deadline then 1 else 0 end from {{ ref('fct_manager_quarter') }}
+            where manager_cik = '1005' and quarter_index = 2)
+    union all
+    select 'Beta Q1 changed after the deadline (restated)', 1,
+           (select case when changed_after_deadline then 1 else 0 end from {{ ref('fct_manager_quarter') }}
+            where manager_cik = '1002' and quarter_index = 2)
+    union all
+    select 'Value a naive Q4 total misses because Beta reported in thousands', 199800,
+           (select value_usd_missed_by_naive_total from {{ ref('fct_disclosure_quarter') }} where quarter_index = 1)
+    union all
     select 'Delta 13F-NT notice has no report', 0,
            (select count(*) from {{ ref('int_report_versions') }} where manager_cik = '1004')
 )
