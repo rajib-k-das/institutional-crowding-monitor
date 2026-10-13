@@ -3,8 +3,6 @@
 select
     h.accession_number,
     h.cusip,
-    h.issuer_name,
-    h.title_of_class,
     h.shares,
     h.reported_value * u.value_multiplier                                   as value_usd,
     u.is_reported_in_thousands,

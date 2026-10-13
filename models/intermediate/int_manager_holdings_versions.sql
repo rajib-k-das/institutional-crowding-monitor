@@ -36,7 +36,6 @@ select
     v.valid_from,
     v.valid_to,
     h.cusip,
-    min(h.issuer_name)                                              as issuer_name,
     sum(h.shares)                                                   as shares,
     sum(h.value_usd)                                                as value_usd,
     max(case when h.is_value_suspect then 1 else 0 end) = 1         as is_value_suspect,

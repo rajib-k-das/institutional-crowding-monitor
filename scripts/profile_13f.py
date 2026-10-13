@@ -116,6 +116,7 @@ CHECKS = {
 
 def main() -> None:
     with duckdb.connect(str(DB_PATH), read_only=True) as con:
+        con.execute("set memory_limit = '3GB'; set preserve_insertion_order = false")
         for title, sql in CHECKS.items():
             print(f"\n== {title} ==")
             con.sql(sql).show(max_rows=80, max_width=250)

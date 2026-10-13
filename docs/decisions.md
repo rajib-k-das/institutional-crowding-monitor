@@ -54,3 +54,11 @@ from at least 5 managers. No outside price data is used.
 thousands of managers is robust to the few in thousands or with typos. It also keeps the project free of licensed data.
 **Limits:** prices exist only at quarter ends; returns derived from them exclude dividends, and stock splits must be
 detected (next layer).
+
+## 007 — Built to run on a free 2-core machine
+
+**Found while building:** the first version of `int_filing_holdings` was killed for lack of memory on a standard
+codespace (8 GB) while aggregating ~40M holding lines with four models running at once.
+**Choice:** dbt runs one model at a time with DuckDB capped at 3 GB (it spills to disk beyond that); the large
+aggregation carries numbers only, and issuer names are kept once per security in `int_securities`.
+**Verified:** a 40M-line synthetic load builds in under 5 minutes with peak memory of about 3.2 GB.

@@ -1,14 +1,12 @@
-
 crowding:
   target: dev
   outputs:
     dev:
       type: duckdb
       path: data/warehouse.duckdb
-      # One model at a time, with a memory cap and spill-to-disk: the full data set is ~40M holding lines and a
+      # One model at a time, with a memory cap (DuckDB spills to data/warehouse.duckdb.tmp beyond it): the full data set is ~40M holding lines and a
       # standard 2-core codespace has 8 GB of memory.
       threads: 1
       settings:
-        memory_limit: "5GB"
+        memory_limit: "3GB"
         preserve_insertion_order: false
-        temp_directory: "data/duckdb_tmp"

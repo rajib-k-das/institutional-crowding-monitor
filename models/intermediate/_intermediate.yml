@@ -44,3 +44,9 @@ models:
 
   - name: int_manager_holdings_versions
     description: Full list of positions in each report version, one row per version and security
+
+  - name: int_securities
+    description: One row per security (CUSIP) with the issuer name and class most often reported for it
+    columns:
+      - name: cusip
+        data_tests: [not_null, unique]
