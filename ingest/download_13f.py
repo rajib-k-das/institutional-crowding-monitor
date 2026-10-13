@@ -79,11 +79,11 @@ def extract(zip_path: Path, name: str) -> None:
     with zipfile.ZipFile(zip_path) as z:
         members = {Path(m).name.upper(): m for m in z.namelist()}
         for table in TABLES:
-            if table not in members:
+            if table.upper() not in members:
                 sys.exit(f"{zip_path.name}: {table} not found (contains {sorted(members)})")
             target = out / table
             if not target.exists():
-                with z.open(members[table]) as src, open(target, "wb") as dst:
+                with z.open(members[table.upper()]) as src, open(target, "wb") as dst:
                     while chunk := src.read(1 << 20):
                         dst.write(chunk)
     print(f"  extract  {name}")
