@@ -1,0 +1,20 @@
+name: crowding
+version: "0.1.0"
+config-version: 2
+profile: crowding
+
+model-paths: ["models"]
+test-paths: ["tests/data_tests"]
+macro-paths: ["macros"]
+
+models:
+  crowding:
+    staging:
+      +materialized: view
+      +schema: staging
+    intermediate:
+      +materialized: table
+      +schema: intermediate
+    marts:
+      +materialized: table
+      +schema: marts

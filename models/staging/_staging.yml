@@ -1,0 +1,51 @@
+version: 2
+
+models:
+  - name: stg_sec__filings
+    description: One row per 13F filing with its manager, report quarter, filing date and amendment details
+    columns:
+      - name: accession_number
+        data_tests: [not_null, unique]
+      - name: manager_cik
+        data_tests: [not_null]
+      - name: period_of_report
+        data_tests: [not_null]
+      - name: filing_date
+        data_tests: [not_null]
+      - name: submission_type
+        data_tests:
+          - accepted_values:
+              arguments:
+                values: ['13F-HR', '13F-HR/A', '13F-NT', '13F-NT/A']
+      - name: amendment_type
+        data_tests:
+          - accepted_values:
+              arguments:
+                values: ['RESTATEMENT', 'NEW HOLDINGS']
+
+  - name: stg_sec__holding_lines
+    description: One row per information-table line, typed
+    columns:
+      - name: accession_number
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('stg_sec__filings')
+                field: accession_number
+      - name: cusip
+        data_tests: [not_null]
+      - name: reported_value
+        data_tests: [not_null]
+      - name: amount
+        data_tests: [not_null]
+      - name: amount_type
+        data_tests:
+          - accepted_values:
+              arguments:
+                values: ['SH', 'PRN']
+      - name: put_call
+        data_tests:
+          - accepted_values:
+              arguments:
+                values: ['PUT', 'CALL']

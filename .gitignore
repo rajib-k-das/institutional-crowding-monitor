@@ -1,0 +1,13 @@
+.venv/
+__pycache__/
+*.pyc
+.env
+# SEC 13F data is downloaded by ingest/download_13f.py; it is large, so never committed
+data/
+exports/
+*.zip
+target/
+dbt_packages/
+logs/
+.user.yml
+.DS_Store

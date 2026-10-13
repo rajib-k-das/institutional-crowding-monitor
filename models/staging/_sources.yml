@@ -1,0 +1,14 @@
+version: 2
+
+sources:
+  - name: raw
+    description: SEC Form 13F data sets, loaded as text by ingest/load_13f.py
+    tables:
+      - name: submission
+        description: One row per filing (13F-HR holdings report, 13F-NT notice, and their amendments)
+      - name: coverpage
+        description: Filing manager and amendment details, one row per filing
+      - name: summarypage
+        description: Totals the manager reports for its own information table
+      - name: infotable
+        description: One row per reported holding line
