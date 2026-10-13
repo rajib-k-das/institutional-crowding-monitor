@@ -11,8 +11,8 @@ Built on every SEC Form 13F filing from 2023 to 2026, on **Snowflake** and DuckD
 |---|---|---|
 | Ingestion | SEC 13F data sets: download, header checks, load | ✅ Done |
 | Staging | Typed filings and holding lines | ✅ Done |
-| Intermediate | Amendments resolved, value-unit errors fixed, one row per manager, security and quarter | 🔜 Next |
-| Marts | Crowding, flows, streaks and next-quarter outcomes (advanced SQL) | 🔜 |
+| Intermediate | Amendments as report versions (SCD Type 2), values in thousands detected and fixed, prices from the filings | ✅ Done |
+| Marts | Crowding, flows, streaks and next-quarter outcomes (advanced SQL) | 🔜 Next |
 | Snowflake | Same models on Snowflake, plus Snowflake-specific features | 🔜 |
 | BI | Tableau Public dashboard | 🔜 |
 
@@ -29,6 +29,7 @@ python ingest/download_13f.py      # about 1.5 GB of zips into data/
 python ingest/load_13f.py
 dbt build
 python scripts/profile_13f.py      # volumes, amendments, value units, duplicates
+python scripts/check_cleaning.py   # what the cleaning changed: thousands, suspect values, amendments, late filings
 ```
 
 Hand-built test filings instead: `python ingest/load_13f.py --raw-dir tests/fixtures && dbt build`.

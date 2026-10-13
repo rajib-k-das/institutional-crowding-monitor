@@ -1,0 +1,46 @@
+version: 2
+
+models:
+  - name: int_filings
+    description: Holdings reports for the studied quarters with each filing's role (original, restatement, new holdings) and deadline
+    columns:
+      - name: accession_number
+        data_tests: [not_null, unique]
+      - name: filing_role
+        data_tests:
+          - accepted_values:
+              arguments:
+                values: ['ORIGINAL', 'RESTATEMENT', 'NEW HOLDINGS']
+      - name: filing_deadline
+        data_tests: [not_null]
+
+  - name: int_filing_holdings
+    description: One row per filing and security (equity positions in shares; options and principal amounts excluded)
+
+  - name: int_consensus_prices
+    description: Quarter-end price per security, the median implied price across managers' original filings
+
+  - name: int_filing_value_units
+    description: Whether each filing reports values in thousands, detected from implied prices
+    columns:
+      - name: accession_number
+        data_tests: [not_null, unique]
+      - name: value_multiplier
+        data_tests:
+          - accepted_values:
+              arguments:
+                values: [1, 1000]
+
+  - name: int_filing_holdings_clean
+    description: Filing positions with values in dollars and a flag for prices that still disagree with the consensus
+
+  - name: int_report_versions
+    description: Every version of each manager's quarterly report as SCD Type 2 (valid_from / valid_to)
+    columns:
+      - name: version_accession
+        data_tests: [not_null, unique]
+      - name: valid_from
+        data_tests: [not_null]
+
+  - name: int_manager_holdings_versions
+    description: Full list of positions in each report version, one row per version and security

@@ -23,3 +23,34 @@ does the typing, and unparseable values become null and fail a test.
 differs, a dispatch macro (`macros/cross_database.sql`) picks the right version for the target.
 **Why:** the repository keeps building and testing after the Snowflake trial ends, and each Snowflake-specific feature
 is shown next to a portable equivalent that is tested to give the same answer.
+
+## 004 — Amendments as report versions (SCD Type 2)
+
+**Found in the data:** 4,144 amendments, of two kinds. A RESTATEMENT (2,808, median 108 days after quarter end)
+replaces the whole report; a NEW HOLDINGS amendment (1,336, median 232 days) adds positions to it. 27 amendments
+state no type, and 7 managers filed two originals for the same quarter.
+**Choice:** each filing starts a new version of the manager's report for that quarter, valid until the next filing
+(`int_report_versions`). A version holds its base (the latest original or restatement) plus every NEW HOLDINGS
+amendment filed after that base. Amendments with no type and second originals are treated as replacing the report.
+**Why:** the question "what was public on date X" needs every version, not just the latest. Taking only the latest
+filing would let analysis see positions that were disclosed months after the fact.
+
+## 005 — Values reported in thousands are detected and fixed
+
+**Found in the data:** since January 2023, 13F values must be in whole dollars, but 6,768 filings still report
+values in thousands: each position's implied price (value ÷ shares) sits at about 1/1000 of what other managers
+report for the same stock in the same quarter.
+**Choice:** compare each position's implied price with the consensus price; when a filing's median ratio is
+between 1/2000 and 1/500, multiply all its values by 1,000. Positions still more than 5x away from the consensus
+after that are flagged as suspect: they count as holders but are left out of value totals.
+**Rejected:** dropping these filings (it would remove real managers from holder counts), or fixing position by
+position (a filing either uses thousands or it does not; the median of its positions decides it robustly).
+
+## 006 — Prices come from the filings themselves
+
+**Choice:** a security's quarter-end price is the median implied price across managers' original filings, required
+from at least 5 managers. No outside price data is used.
+**Why:** 13F values are quarter-end market values, so the filings already contain the price; the median across
+thousands of managers is robust to the few in thousands or with typos. It also keeps the project free of licensed data.
+**Limits:** prices exist only at quarter ends; returns derived from them exclude dividends, and stock splits must be
+detected (next layer).

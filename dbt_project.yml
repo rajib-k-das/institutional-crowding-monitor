@@ -18,3 +18,11 @@ models:
     marts:
       +materialized: table
       +schema: marts
+
+vars:
+  # Report quarters studied. The data sets start with filings made in late 2023, so Q3 2023 is the first quarter
+  # whose original filings are all present; Q2 2026 is the latest quarter filed.
+  first_report_quarter: "2023-09-30"
+  last_report_quarter: "2026-06-30"
+  # A security needs at least this many filings reporting it in a quarter for a consensus price (decision 006).
+  min_filings_for_price: 5

@@ -16,6 +16,10 @@ pipeline has to handle. Expected results are asserted in tests/data_tests/assert
       Q1 2024  amendment  NEW HOLDINGS filed 1 Jul 2024: ACME 400 sh $44,000, added to the original
     Delta Fund (CIK 1004)
       Q1 2024  13F-NT notice: holdings reported by another manager, so no holdings rows
+    Peer One to Four (CIK 1005-1008)
+      both quarters: ACME at $100 then $110 a share, BOLT at $50 then $60, setting the consensus price
+      Peer One files Q1 on 1 Jun 2024, after the 15 May deadline
+      Peer Two reports BOLT in Q1 at $60,000 a share: a suspect line, kept for holder counts, not for values
 
 Usage:
     python tests/fixtures/make_fixtures.py
@@ -40,7 +44,8 @@ HEADERS = {
 }
 
 ACME, BOLT, CIVIC = ("ACME CORP", "COM", "000000AA1"), ("BOLT INC", "CL A", "000000BB2"), ("CIVIC CO", "NOTE 5% 2030", "000000CC3")
-MANAGERS = {"1001": "ALPHA CAPITAL LLC", "1002": "BETA PARTNERS LP", "1003": "GAMMA ADVISORS INC", "1004": "DELTA FUND LLC"}
+MANAGERS = {"1001": "ALPHA CAPITAL LLC", "1002": "BETA PARTNERS LP", "1003": "GAMMA ADVISORS INC", "1004": "DELTA FUND LLC",
+            "1005": "PEER ONE LLC", "1006": "PEER TWO LLC", "1007": "PEER THREE LLC", "1008": "PEER FOUR LLC"}
 
 # accession, filing date, submission type, cik, period, is amendment, amendment no, amendment type, report type, holdings
 FILINGS = [
@@ -60,6 +65,17 @@ FILINGS = [
     ("0000001003-24-000002", "01-JUL-2024", "13F-HR/A", "1003", "31-MAR-2024", "Y", "1", "NEW HOLDINGS",
      "13F HOLDINGS REPORT", [(ACME, 44000, 400, "SH", "")]),
 ]
+# Four peers that set the consensus price: ACME $100 at Q4 2023 and $110 at Q1 2024, BOLT $50 and $60.
+for n, cik in enumerate(["1005", "1006", "1007", "1008"], start=1):
+    q4 = [(ACME, 100 * 100 * n, 100 * n, "SH", ""), (BOLT, 50 * 200 * n, 200 * n, "SH", "")]
+    q1 = [(ACME, 110 * 100 * n, 100 * n, "SH", ""), (BOLT, 60 * 200 * n, 200 * n, "SH", "")]
+    if cik == "1006":
+        q1[1] = (BOLT, 60_000 * 400, 400, "SH", "")   # value 1,000x too high for its shares: suspect, value not used
+    q1_date = "01-JUN-2024" if cik == "1005" else "14-MAY-2024"  # Peer One files after the 15 May deadline
+    FILINGS.append((f"000000{cik}-24-000001", "09-FEB-2024", "13F-HR", cik, "31-DEC-2023", "", "", "",
+                    "13F HOLDINGS REPORT", q4))
+    FILINGS.append((f"000000{cik}-24-000002", q1_date, "13F-HR", cik, "31-MAR-2024", "", "", "",
+                    "13F HOLDINGS REPORT", q1))
 
 
 def data_set_for(filing_date: str) -> str:
