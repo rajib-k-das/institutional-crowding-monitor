@@ -12,6 +12,7 @@ with series as (
     from {{ ref('fct_security_quarter') }}
     where is_common_equity
       and breadth_change is not null
+      and not is_likely_corporate_event
       and holders_previous_quarter >= {{ var('min_holders_for_crowding') }}
 ),
 

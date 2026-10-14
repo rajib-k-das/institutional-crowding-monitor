@@ -100,3 +100,21 @@ quarter's end to the one after (which starts *after* the data were public).
 or changed by more than 10% (split-adjusted), by the manager's next quarterly report.
 **Why:** a 13F is published up to 45 days after the quarter it describes; this measures how much of what an
 investor reads has already been traded away by the next disclosure.
+
+## 013 — A third reporting error: swapped value and share columns
+
+**Found in the data:** the first thousands detector flagged CalSTRS, whose "NVIDIA 7,007,449,934 shares worth
+$35,021,490" had an implied price of half a cent. Dividing the other way, 7,007,449,934 ÷ 35,021,490 = $200.09,
+exactly NVIDIA's quarter-end price: the filing put the dollar value in the shares column and the share count in the
+value column. Its median price ratio happened to fall inside the thousands band, so it was being multiplied by 1,000.
+**Choice:** each filing is first tested for swapped columns (shares ÷ value matches the consensus price), then for
+thousands; swapped filings have the two columns swapped back. A test filer with swapped columns pins the behaviour.
+
+## 014 — Corporate events are not crowding
+
+**Found in the data:** the "most abandoned" list was led by Honeywell (2,714 holders to 134), Hologic (669 to 4) and
+Sealed Air (403 to 1), and Carnival topped the "crowded into" list (26 to 947). These are acquisitions, spin-offs and
+new CUSIPs, not managers changing their minds.
+**Choice:** a stock whose holder count halves or doubles in one quarter, by at least 50 managers, is flagged as a
+likely corporate event and left out of the crowding deciles and streaks. The flagged stocks are listed by the
+findings script so the rule can be checked.

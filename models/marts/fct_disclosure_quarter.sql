@@ -20,6 +20,7 @@ originals as (
         f.period_of_report,
         count(distinct f.accession_number)                                                as original_filings,
         count(distinct case when u.is_reported_in_thousands then f.accession_number end) as original_filings_in_thousands,
+        count(distinct case when u.has_swapped_columns then f.accession_number end)      as original_filings_swapped,
         sum(case when not h.is_value_suspect then h.value_usd end)                         as value_usd_corrected,
         sum(case when not h.is_value_suspect then h.reported_value end)                    as value_usd_as_reported
     from {{ ref('int_filings') }} as f
@@ -43,6 +44,7 @@ select
     m.value_usd_at_deadline,
     o.original_filings,
     o.original_filings_in_thousands,
+    o.original_filings_swapped,
     o.value_usd_corrected,
     o.value_usd_as_reported,
     o.value_usd_corrected - o.value_usd_as_reported as value_usd_missed_by_naive_total

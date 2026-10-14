@@ -16,7 +16,8 @@ with versions as (
 
 units as (
     select f.manager_cik, f.period_of_report,
-           max(case when u.is_reported_in_thousands then 1 else 0 end) = 1 as reported_in_thousands
+           max(case when u.is_reported_in_thousands then 1 else 0 end) = 1 as reported_in_thousands,
+           max(case when u.has_swapped_columns then 1 else 0 end) = 1 as had_swapped_columns
     from {{ ref('int_filings') }} as f
     inner join {{ ref('int_filing_value_units') }} as u using (accession_number)
     group by f.manager_cik, f.period_of_report
@@ -75,6 +76,7 @@ select
     v.was_restated,
     v.had_holdings_added,
     coalesce(u.reported_in_thousands, false)                       as reported_in_thousands,
+    coalesce(u.had_swapped_columns, false)                         as had_swapped_columns,
     fin.positions                                                  as positions_final,
     fin.value_usd                                                  as value_usd_final,
     dl.value_usd                                                   as value_usd_at_deadline,

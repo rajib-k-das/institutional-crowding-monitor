@@ -1,12 +1,14 @@
 -- Each quarter, common stocks held by enough managers are ranked into ten groups by the change in ownership breadth
 -- known at the filing deadline (1 = most abandoned, 10 = most crowded into). Equal-weighted average returns per
 -- group, for the quarter that starts before the data are public and for the one that starts after (decision 011).
--- Returns outside -95% to +300% are treated as data errors and left out of the averages.
+-- Returns outside -95% to +300% are treated as data errors and left out of the averages, and stocks whose holder
+-- count halved or doubled (likely acquisitions, spin-offs or new CUSIPs) are excluded.
 with universe as (
     select *
     from {{ ref('fct_security_quarter') }}
     where is_common_equity
       and breadth_change is not null
+      and not is_likely_corporate_event
       and holders_previous_quarter >= {{ var('min_holders_for_crowding') }}
 ),
 

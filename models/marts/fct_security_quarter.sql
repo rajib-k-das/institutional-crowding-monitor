@@ -25,6 +25,7 @@ select
     b.holders_before                             as holders_previous_quarter,
     b.managers_in_both,
     b.breadth_change,
+    coalesce(b.is_likely_corporate_event, false) as is_likely_corporate_event,
     p.consensus_price,
     r0.split_factor                              as split_factor_to_next_quarter,
     r0.return_to_next_quarter                    as return_next_quarter,

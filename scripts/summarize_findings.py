@@ -22,9 +22,10 @@ CHECKS = {
                round(value_usd_at_deadline / 1e12, 1) as value_known_at_deadline_tn
         from marts.fct_disclosure_quarter order by 1
     """,
-    "2. Original filings reported in thousands, and what a naive total misses": """
+    "2. Original filings in thousands or with swapped columns, and what a naive total misses": """
         select period_of_report as quarter, original_filings, original_filings_in_thousands,
                round(100.0 * original_filings_in_thousands / original_filings, 1) as pct_in_thousands,
+               original_filings_swapped,
                round(value_usd_as_reported / 1e12, 1) as naive_total_tn,
                round(value_usd_corrected / 1e12, 1) as corrected_total_tn,
                round(100.0 * value_usd_missed_by_naive_total / value_usd_corrected, 1) as pct_of_value_missed
@@ -36,22 +37,26 @@ CHECKS = {
         where reported_in_thousands and quarter_index = (select max(quarter_index) from marts.fct_manager_quarter)
         order by value_usd_final desc nulls last limit 10
     """,
-    "4. Evidence: the three largest positions of the three largest managers in thousands (latest quarter)": """
+    "4. Evidence: largest positions of the largest flagged managers, as filed (latest quarter)": """
         with flagged as (
-            select f.accession_number, f.manager_name
+            select f.accession_number, f.manager_name, u.value_issue,
+                   row_number() over (partition by u.value_issue order by f.reported_value_total desc) as rank_in_issue
             from intermediate.int_filings as f
             inner join intermediate.int_filing_value_units as u using (accession_number)
-            where u.is_reported_in_thousands and f.filing_role = 'ORIGINAL'
+            where u.value_issue <> 'NONE' and f.filing_role = 'ORIGINAL'
               and f.quarter_index = (select max(quarter_index) from intermediate.int_filings)
-            order by f.reported_value_total desc limit 3
         )
-        select fl.manager_name, s.issuer_name, h.shares, h.reported_value,
-               round(h.reported_value / h.shares, 4) as implied_price, round(h.consensus_price, 2) as consensus_price
+        select fl.value_issue, fl.manager_name, s.issuer_name,
+               h.shares as shares_as_filed, h.reported_value as value_as_filed,
+               round(h.reported_value / h.shares, 4) as value_per_share, round(c.consensus_price, 2) as consensus_price,
+               round(c.value_usd / 1e6, 1) as fixed_value_usd_m
         from flagged as fl
-        inner join intermediate.int_filing_holdings_clean as h using (accession_number)
+        inner join intermediate.int_filing_holdings as h using (accession_number)
+        inner join intermediate.int_filing_holdings_clean as c using (accession_number, cusip)
         left join intermediate.int_securities as s using (cusip)
-        qualify row_number() over (partition by fl.manager_name order by h.value_usd desc) <= 3
-        order by 1, h.value_usd desc
+        where fl.rank_in_issue <= 2
+        qualify row_number() over (partition by fl.manager_name order by c.value_usd desc) <= 3
+        order by 1, 2, c.value_usd desc
     """,
     "5. Staleness: share of a manager's disclosed portfolio (by value) changed or exited by its next report": """
         select period_of_report as quarter,
@@ -126,7 +131,7 @@ CHECKS = {
             select avg(case when breadth_change < 0 then 1.0 else 0 end) as base_rate
             from marts.fct_security_quarter
             where is_common_equity and breadth_change is not null
-              and holders_previous_quarter >= 10
+              and holders_previous_quarter >= 10 and not is_likely_corporate_event
         )
         select count(*) as streaks,
                count(reversed_after) as streaks_with_next_quarter,
@@ -139,7 +144,7 @@ CHECKS = {
         with latest as (
             select * from marts.fct_security_quarter
             where quarter_index = (select max(quarter_index) from marts.fct_security_quarter where breadth_change is not null)
-              and is_common_equity and holders_previous_quarter >= 10
+              and is_common_equity and holders_previous_quarter >= 10 and not is_likely_corporate_event
         )
         (select 'crowded into' as direction, issuer_name, holders_previous_quarter, holders_at_deadline,
                 round(100 * breadth_change, 2) as breadth_change_pct
@@ -148,6 +153,14 @@ CHECKS = {
         (select 'abandoned', issuer_name, holders_previous_quarter, holders_at_deadline,
                 round(100 * breadth_change, 2)
          from latest order by breadth_change asc limit 10)
+    """,
+    "11b. Excluded as likely corporate events (holders halved or doubled by 50+ managers), per quarter": """
+        select period_of_report as quarter, count(*) as securities,
+               string_agg(issuer_name, '; ' order by abs(breadth_change) desc) as examples
+        from (select * from marts.fct_security_quarter
+              where is_likely_corporate_event and is_common_equity
+              qualify row_number() over (partition by quarter_index order by abs(breadth_change) desc) <= 4) as top4
+        group by 1 order by 1
     """,
     "12. Sanity check: most widely held stocks in the latest quarter (final picture)": """
         select issuer_name, holders_final, round(value_usd_final / 1e9, 0) as value_bn, round(consensus_price, 2) as price

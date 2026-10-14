@@ -61,6 +61,10 @@ select
     c.holders_now,
     c.holders_before,
     m.managers_in_both,
-    cast(c.holders_now - c.holders_before as double) / m.managers_in_both as breadth_change
+    cast(c.holders_now - c.holders_before as double) / m.managers_in_both as breadth_change,
+    -- Holder count halved or doubled in one quarter, by 50+ managers: almost always a corporate event (acquisition,
+    -- merger, spin-off or new CUSIP), not managers changing their minds. Excluded from the crowding analysis.
+    (c.holders_now * 2 <= c.holders_before or c.holders_now >= 2 * c.holders_before)
+        and abs(c.holders_now - c.holders_before) >= 50 as is_likely_corporate_event
 from combined as c
 inner join manager_counts as m using (quarter_index)

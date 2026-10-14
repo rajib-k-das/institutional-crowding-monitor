@@ -17,6 +17,8 @@ pipeline has to handle. Expected results are asserted in tests/data_tests/assert
       Q1 2024  amendment  NEW HOLDINGS filed 1 Jul 2024: ACME 400 sh $44,000, added to the original
     Delta Fund (CIK 1004)
       Q1 2024  13F-NT notice: holdings reported by another manager, so no holdings rows
+    Swap Capital (CIK 1009)
+      Q4 2023  original   value and share columns swapped: ACME "100,000 sh worth $1,000" is really 1,000 sh worth $100,000
     Peer One to Four (CIK 1005-1008)
       both quarters: ACME at $100 then $110 a share, BOLT at $50 then $60, setting the consensus price;
       SPLIT 100 sh at $200, then 200 sh at $105 after its 2-for-1 split (a +5% return, not -47.5%)
@@ -48,7 +50,7 @@ HEADERS = {
 ACME, BOLT, CIVIC = ("ACME CORP", "COM", "000000AA1"), ("BOLT INC", "CL A", "000000BB2"), ("CIVIC CO", "NOTE 5% 2030", "000000CC3")
 SPLT = ("SPLIT CO", "COM", "000000DD4")   # splits 2-for-1 during Q1 2024: $200 a share, then $105
 MANAGERS = {"1001": "ALPHA CAPITAL LLC", "1002": "BETA PARTNERS LP", "1003": "GAMMA ADVISORS INC", "1004": "DELTA FUND LLC",
-            "1005": "PEER ONE LLC", "1006": "PEER TWO LLC", "1007": "PEER THREE LLC", "1008": "PEER FOUR LLC"}
+            "1009": "SWAP CAPITAL LLC", "1005": "PEER ONE LLC", "1006": "PEER TWO LLC", "1007": "PEER THREE LLC", "1008": "PEER FOUR LLC"}
 
 # accession, filing date, submission type, cik, period, is amendment, amendment no, amendment type, report type, holdings
 FILINGS = [
@@ -69,6 +71,10 @@ FILINGS = [
     ("0000001003-24-000002", "01-JUL-2024", "13F-HR/A", "1003", "31-MAR-2024", "Y", "1", "NEW HOLDINGS",
      "13F HOLDINGS REPORT", [(ACME, 44000, 400, "SH", "")]),
 ]
+# Swap Capital reports Q4 with its value and share columns swapped (really ACME 1,000 sh $100,000; BOLT 500 sh $25,000).
+FILINGS.append(("0000001009-24-000001", "13-FEB-2024", "13F-HR", "1009", "31-DEC-2023", "", "", "",
+                "13F HOLDINGS REPORT", [(ACME, 1000, 100000, "SH", ""), (BOLT, 500, 25000, "SH", "")]))
+
 # Four peers that set the consensus price: ACME $100 at Q4 2023 and $110 at Q1 2024, BOLT $50 and $60.
 for n, cik in enumerate(["1005", "1006", "1007", "1008"], start=1):
     q4 = [(ACME, 100 * 100 * n, 100 * n, "SH", ""), (BOLT, 50 * 200 * n, 200 * n, "SH", ""), (SPLT, 20000, 100, "SH", "")]

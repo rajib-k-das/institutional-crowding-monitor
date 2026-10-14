@@ -118,8 +118,24 @@ checks as (
            (select case when changed_after_deadline then 1 else 0 end from {{ ref('fct_manager_quarter') }}
             where manager_cik = '1002' and quarter_index = 2)
     union all
-    select 'Value a naive Q4 total misses because Beta reported in thousands', 199800,
+    select 'Value a naive Q4 total misses (Beta in thousands: 199,800; Swap Capital swapped: 123,500)', 323300,
            (select value_usd_missed_by_naive_total from {{ ref('fct_disclosure_quarter') }} where quarter_index = 1)
+    union all
+    select 'Swap Capital Q4 detected as swapped columns', 1,
+           (select case when has_swapped_columns then 1 else 0 end from {{ ref('int_filing_value_units') }}
+            where accession_number = '0000001009-24-000001')
+    union all
+    select 'Swap Capital Q4 ACME shares after the fix', 1000,
+           (select shares from {{ ref('int_filing_holdings_clean') }}
+            where accession_number = '0000001009-24-000001' and cusip = {{ acme }})
+    union all
+    select 'Swap Capital Q4 ACME value after the fix', 100000,
+           (select value_usd from {{ ref('int_filing_holdings_clean') }}
+            where accession_number = '0000001009-24-000001' and cusip = {{ acme }})
+    union all
+    select 'Swap Capital Q4 not mistaken for thousands', 0,
+           (select case when is_reported_in_thousands then 1 else 0 end from {{ ref('int_filing_value_units') }}
+            where accession_number = '0000001009-24-000001')
     union all
     select 'Delta 13F-NT notice has no report', 0,
            (select count(*) from {{ ref('int_report_versions') }} where manager_cik = '1004')
