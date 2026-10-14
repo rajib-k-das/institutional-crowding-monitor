@@ -17,3 +17,5 @@ jobs:
       # Hand-built test filings: every awkward case has a known answer.
       - run: python ingest/load_13f.py --raw-dir tests/fixtures
       - run: dbt build
+      # The dashboard's data files still build from the marts.
+      - run: python scripts/export_for_tableau.py
