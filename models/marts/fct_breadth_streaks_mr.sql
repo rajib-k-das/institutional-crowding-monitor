@@ -36,7 +36,7 @@ runs as (
             pattern (rise_start rise_next{2,})
             define
                 rise_start as breadth_change > 0,
-                rise_next  as breadth_change > 0 and quarter_index = prev(quarter_index) + 1
+                rise_next  as breadth_change > 0 and quarter_index = lag(quarter_index) + 1
         )
 )
 
