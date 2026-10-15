@@ -15,3 +15,7 @@ logs/
 profile.txt
 cleaning.txt
 findings.txt
+# Snowflake key pair (kept in ~/.snowflake, never in the repo)
+*.p8
+*.pem
+rsa_key.pub

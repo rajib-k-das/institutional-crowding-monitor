@@ -27,7 +27,7 @@ Built with dbt on DuckDB, with the same models run on **Snowflake**, and a **Tab
 | Staging | Typed filings and holding lines | ✅ Done |
 | Intermediate | Report versions (SCD Type 2), reporting errors fixed, prices and splits from the filings | ✅ Done |
 | Marts | Disclosure gaps, staleness, crowding deciles vs returns, breadth streaks | ✅ Done |
-| Snowflake | Same models on Snowflake, plus Snowflake-specific features | 🔜 Next |
+| Snowflake | Same models on Snowflake, plus Snowflake-specific features | 🔄 In progress |
 | BI | [Tableau Public dashboard](https://public.tableau.com/app/profile/rajib.kumar.das/viz/InstitutionalCrowdingMonitor/Dashboard1) | ✅ Done |
 
 ## What the data showed
@@ -126,6 +126,9 @@ python scripts/export_for_tableau.py # CSV files for the dashboard (exports/)
 ```
 
 Hand-built test filings instead: `python ingest/load_13f.py --raw-dir tests/fixtures && dbt build`.
+
+On Snowflake, with the same models: [docs/snowflake_guide.md](docs/snowflake_guide.md) (load through an internal stage,
+`dbt build --target snowflake`, then `python scripts/compare_engines.py` to check both warehouses agree).
 
 ## Tech stack
 

@@ -118,3 +118,21 @@ new CUSIPs, not managers changing their minds.
 **Choice:** a stock whose holder count halves or doubles in one quarter, by at least 50 managers, is flagged as a
 likely corporate event and left out of the crowding deciles and streaks. The flagged stocks are listed by the
 findings script so the rule can be checked.
+
+## 015 — Reported values and share counts are FLOAT on Snowflake
+
+**Found while porting:** DuckDB divides whole numbers as doubles. Snowflake divides `NUMBER(38,0)` columns with a
+fixed number of decimal places (6, rising to 12 when divisions are chained), which is enough to blur the tiny ratios
+the reporting-error checks rely on (a swapped filing's value ÷ shares ÷ price is about 1/price²).
+**Choice:** `to_measure()` (`macros/cross_database.sql`) types reported values and share counts as `FLOAT` on Snowflake
+and `BIGINT` on DuckDB. Whole numbers below 2^53 (about 9 × 10^15) are exact in a double, and the largest sums here
+(about $50 trillion) are well inside that. `scripts/compare_engines.py` checks the two warehouses give the same answers.
+
+## 016 — Streaks twice: gaps-and-islands and MATCH_RECOGNIZE
+
+**Choice:** `fct_breadth_streaks` finds runs of rising ownership with portable gaps-and-islands SQL (row number
+subtracted from the quarter number). On Snowflake, `fct_breadth_streaks_mr` finds the same runs with
+`MATCH_RECOGNIZE`, which states the rule directly as a pattern: a rising quarter followed by two or more rising
+quarters, each numbered one after the last.
+**Why:** row pattern matching is the clearer way to express sequences, but it is not available in DuckDB. A
+Snowflake-only test (`assert_breadth_streaks_engines_agree`) fails if either method finds a run the other does not.

@@ -7,8 +7,8 @@ select
     trim(nameofissuer)                             as issuer_name,
     trim(titleofclass)                             as title_of_class,
     nullif(trim(figi), '')                         as figi,
-    {{ to_number('value') }}                       as reported_value,
-    {{ to_number('sshprnamt') }}                   as amount,
+    {{ to_measure('value') }}                      as reported_value,
+    {{ to_measure('sshprnamt') }}                  as amount,
     upper(trim(sshprnamttype))                     as amount_type,      -- SH = shares, PRN = principal amount
     upper(nullif(trim(putcall), ''))               as put_call,         -- PUT / CALL for options, else null
     upper(nullif(trim(investmentdiscretion), ''))  as investment_discretion,

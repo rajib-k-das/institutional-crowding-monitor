@@ -22,6 +22,6 @@ select
     min(c.candidate_date)                             as filing_deadline
 from candidates as c
 left join {{ ref('us_federal_holidays') }} as h on h.holiday_date = c.candidate_date
-where dayofweek(c.candidate_date) not in (0, 6)
+where not ({{ is_weekend('c.candidate_date') }})
   and h.holiday_date is null
 group by c.period_of_report

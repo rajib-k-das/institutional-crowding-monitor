@@ -10,3 +10,16 @@ crowding:
       settings:
         memory_limit: "3GB"
         preserve_insertion_order: false
+
+    # The same models on Snowflake (docs/snowflake_guide.md): dbt build --target snowflake
+    # A service user signs in with a key pair kept outside the repo; the account comes from an environment variable.
+    snowflake:
+      type: snowflake
+      account: "{{ env_var('SNOWFLAKE_ACCOUNT', 'not-set') }}"
+      user: DBT_USER
+      private_key_path: "{{ env_var('SNOWFLAKE_PRIVATE_KEY_PATH', env_var('HOME', '') ~ '/.snowflake/rsa_key.p8') }}"
+      role: CROWDING_TRANSFORMER
+      warehouse: CROWDING_WH
+      database: "{{ env_var('SNOWFLAKE_DATABASE', 'CROWDING') }}"
+      schema: dbt
+      threads: 4

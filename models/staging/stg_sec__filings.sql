@@ -12,7 +12,7 @@ select
     {{ to_number('c.amendmentno', 'integer') }}                as amendment_number,
     upper(nullif(trim(c.amendmenttype), ''))                   as amendment_type,
     {{ to_number('p.tableentrytotal') }}                       as reported_entry_count,
-    {{ to_number('p.tablevaluetotal') }}                       as reported_value_total,
+    {{ to_measure('p.tablevaluetotal') }}                      as reported_value_total,
     coalesce(upper(trim(p.isconfidentialomitted)) = 'Y', false) as has_confidential_omissions,
     s.source_data_set
 from {{ source('raw', 'submission') }} as s

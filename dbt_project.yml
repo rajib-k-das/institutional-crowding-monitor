@@ -17,6 +17,8 @@ seeds:
 
 models:
   crowding:
+    # Labels every dbt query in Snowflake's query history (ignored on DuckDB).
+    +query_tag: "crowding:dbt"
     staging:
       +materialized: view
       +schema: staging
