@@ -17,6 +17,10 @@ date, and measures three things most uses of the data quietly ignore:
 
 Built with dbt on DuckDB, with the same models run on **Snowflake**, and a **Tableau Public** dashboard.
 
+**[▶ Open the interactive dashboard on Tableau Public](https://public.tableau.com/app/profile/rajib.kumar.das/viz/InstitutionalCrowdingMonitor/Dashboard1)**
+
+[![Institutional Crowding Monitor dashboard](docs/dashboard.png)](https://public.tableau.com/app/profile/rajib.kumar.das/viz/InstitutionalCrowdingMonitor/Dashboard1)
+
 | Layer | Output | Status |
 |---|---|---|
 | Ingestion | SEC 13F data sets: download, header checks, load | ✅ Done |
@@ -24,7 +28,7 @@ Built with dbt on DuckDB, with the same models run on **Snowflake**, and a **Tab
 | Intermediate | Report versions (SCD Type 2), reporting errors fixed, prices and splits from the filings | ✅ Done |
 | Marts | Disclosure gaps, staleness, crowding deciles vs returns, breadth streaks | ✅ Done |
 | Snowflake | Same models on Snowflake, plus Snowflake-specific features | 🔜 Next |
-| BI | Tableau Public dashboard | 🔜 |
+| BI | [Tableau Public dashboard](https://public.tableau.com/app/profile/rajib.kumar.das/viz/InstitutionalCrowdingMonitor/Dashboard1) | ✅ Done |
 
 ## What the data showed
 
@@ -66,7 +70,7 @@ managers holding them, using only reports public at the deadline. Average next-q
 
 | | Most abandoned (1) | Groups 2–9 | Most crowded into (10) | Spread (10 − 1) | t-stat |
 |---|---|---|---|---|---|
-| Quarter starting **before** data public | 2.7% | 2.2–3.7% | 5.3% | 2.5% | 2.4 (10 quarters) |
+| Quarter starting **before** data public | 2.7% | 2.2–3.7% | 5.2% | 2.5% | 2.4 (10 quarters) |
 | Quarter starting **after** data public | 2.1% | 2.2–3.4% | 5.4% | 3.3% | 1.9 (9 quarters) |
 
 - The effect sits almost entirely in the most-crowded group; the other nine are close to one another.
