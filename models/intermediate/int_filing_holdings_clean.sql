@@ -28,7 +28,7 @@ select
     coalesce(
         x.shares <= 0
         or x.value_usd <= 0
-        or (x.value_usd / x.shares) / p.consensus_price not between 0.2 and 5,
+        or (x.value_usd / nullif(x.shares, 0)) / p.consensus_price not between 0.2 and 5,
         false
     ) as is_value_suspect
 from fixed as x
